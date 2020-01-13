@@ -91,3 +91,28 @@ func (c *Client) ApplicationEPGList(tenant, applicationProfile string) ([]map[st
 
 	return jsonImdataAttributes(c, body, key, me)
 }
+
+// EPGVMMAdd adds a VMM Domain to an EPG.
+func (c *Client) EPGVMMAdd(vmmType, tenant, applicationProfile, epg string) error {
+
+	me := "EPGVMMAdd"
+	dnE := dnAEPG(tenant, applicationProfile, epg)
+
+	api := "/api/node/mo/uni/" + dnE + ".json"
+
+	url := c.getURL(api)
+
+	j := fmt.Sprintf(`{"fvRsDomAtt":{"attributes":{"resImedcy":"immediate","tDn":"uni/vmmp-%s/dom-%s","instrImedcy":"immediate","status":"created"},"children":[{"vmmSecP":{"attributes":{"status":"created"},"children":[]}}]}}`,vmmType,tenant)
+
+
+	c.debugf("%s: url=%s json=%s", me, url, j)
+
+	body, errPost := c.post(url, contentTypeJSON, bytes.NewBufferString(j))
+	if errPost != nil {
+		return fmt.Errorf("%s: %v", me, errPost)
+	}
+
+	c.debugf("%s: reply: %s", me, string(body))
+
+	return parseJSONError(body)
+}

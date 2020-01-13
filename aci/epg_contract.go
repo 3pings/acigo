@@ -158,3 +158,28 @@ func (c *Client) EPGContractConsumedList(tenant, applicationProfile, epg string)
 
 	return jsonImdataAttributes(c, body, key, me)
 }
+
+func (c *Client) EPGContractInheritanceAdd(tenant, applicationProfile, epg string) error {
+
+me := "EPGContractInheritanceAdd"
+
+dnE := dnAEPG(tenant, applicationProfile, epg)
+
+api := "/api/node/mo/uni/" + dnE + ".json"
+
+url := c.getURL(api)
+
+j := fmt.Sprintf(`payload{"fvRsSecInherited":{"attributes":{"tDn":"uni/tn-%s/ap-kubernetes/epg-kube-default","status":"created"},"children":[]}} `,
+tenant)
+
+c.debugf("%s: url=%s json=%s", me, url, j)
+
+body, errPost := c.post(url, contentTypeJSON, bytes.NewBufferString(j))
+if errPost != nil {
+return fmt.Errorf("%s: %v", me, errPost)
+}
+
+c.debugf("%s: reply: %s", me, string(body))
+
+return parseJSONError(body)
+}
